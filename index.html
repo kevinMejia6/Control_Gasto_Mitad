@@ -1,138 +1,100 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Control de Quincena</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          boxShadow: {
-            soft: "0 10px 30px rgba(0,0,0,.08)",
-          }
-        }
-      }
-    }
-  </script>
+<meta charset="UTF-8">
+<title>Control Financiero Quincenal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-slate-50 text-slate-800">
-<div class="min-h-screen">
+<body class="bg-slate-100 text-slate-800">
+
+<div class="min-h-screen max-w-7xl mx-auto p-4 space-y-6">
 
 <!-- HEADER -->
-<header class="sticky top-0 z-30 backdrop-blur bg-white/70 border-b border-slate-200">
-  <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-    <h1 class="text-xl font-semibold">📊 Control de Quincena</h1>
-    <button id="btnAdd"
-      class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
-      + Agregar pago
-    </button>
+<header class="bg-white rounded-2xl shadow p-4 flex flex-col md:flex-row justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold">💸 Control Financiero Quincenal</h1>
+    <p class="text-sm text-slate-500">Administra tus gastos por quincena</p>
+  </div>
+  <div class="flex gap-2">
+    <button onclick="exportJSON()" class="px-4 py-2 rounded-xl border">Exportar JSON</button>
+    <button onclick="openModal()" class="px-4 py-2 rounded-xl bg-slate-900 text-white">+ Gasto</button>
   </div>
 </header>
 
-<!-- SELECTORES -->
-<section class="max-w-6xl mx-auto px-4 py-4 grid md:grid-cols-3 gap-4">
-  <div class="bg-white p-4 rounded-xl border">
-    <label class="text-sm font-medium">Depósito quincenal</label>
-    <input id="depositInput" type="number" step="0.01"
-      class="mt-1 w-full px-3 py-2 rounded-xl border"
-      value="418.52">
-  </div>
-
-  <div class="bg-white p-4 rounded-xl border">
-    <label class="text-sm font-medium">Quincena</label>
-    <select id="quincenaSelect"
-      class="mt-1 w-full px-3 py-2 rounded-xl border">
-      <option value="1">Primera quincena</option>
-      <option value="2">Segunda quincena</option>
-    </select>
-  </div>
-
-  <div class="bg-white p-4 rounded-xl border">
-    <label class="text-sm font-medium">Filtro</label>
-    <select id="tipoFiltro"
-      class="mt-1 w-full px-3 py-2 rounded-xl border">
-      <option value="ALL">Todos</option>
-      <option value="MITAD">Solo Mitad</option>
-      <option value="TOTAL">Solo Total</option>
-    </select>
-  </div>
+<!-- CONTROLES -->
+<section class="grid md:grid-cols-4 gap-4">
+  <input id="deposito" type="number" class="input" placeholder="Depósito quincenal">
+  <select id="quincena" class="input">
+    <option value="1">Quincena 1</option>
+    <option value="2">Quincena 2</option>
+  </select>
+  <select id="filtro" class="input">
+    <option value="ALL">Todos</option>
+    <option value="MITAD">Solo Mitad</option>
+    <option value="TOTAL">Solo Total</option>
+  </select>
+  <input id="buscar" class="input" placeholder="Buscar gasto">
 </section>
 
 <!-- RESUMEN -->
-<section class="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-4">
-  <div class="bg-white p-4 rounded-xl border">
+<section class="grid md:grid-cols-3 gap-4">
+  <div class="card">
     <p class="text-sm text-slate-500">Total a pagar</p>
-    <p id="sumTotalPay" class="text-2xl font-bold">$0.00</p>
+    <h2 id="total" class="text-2xl font-bold">$0.00</h2>
   </div>
-  <div class="bg-white p-4 rounded-xl border">
+  <div class="card">
     <p class="text-sm text-slate-500">Disponible</p>
-    <p id="sumRemaining" class="text-2xl font-bold">$0.00</p>
+    <h2 id="disponible" class="text-2xl font-bold">$0.00</h2>
   </div>
-  <div class="bg-white p-4 rounded-xl border">
-    <p id="sumStatus" class="text-lg font-semibold">—</p>
+  <div class="card">
+    <p class="text-sm text-slate-500">Estado</p>
+    <h2 id="estado" class="text-xl font-semibold">—</h2>
   </div>
 </section>
 
 <!-- TABLA -->
-<section class="max-w-6xl mx-auto px-4 py-6">
-  <div class="bg-white rounded-xl border overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-slate-100">
-        <tr>
-          <th class="p-3 text-left">Pago</th>
-          <th class="p-3 text-right">Total</th>
-          <th class="p-3 text-center">Tipo</th>
-          <th class="p-3 text-right">Pago quincena</th>
-          <th class="p-3 text-right">Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
+<section class="card overflow-auto">
+<table class="w-full text-sm">
+<thead>
+<tr class="border-b text-left">
+<th class="py-2">Pago</th>
+<th class="py-2 text-right">Total</th>
+<th class="py-2 text-center">Tipo</th>
+<th class="py-2 text-right">Q1</th>
+<th class="py-2 text-right">Q2</th>
+<th class="py-2 text-center">Acción</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
 </section>
 
+</div>
+
 <!-- MODAL -->
-<div id="modal" class="fixed inset-0 hidden z-50">
-  <div class="absolute inset-0 bg-black/40"></div>
-  <div class="relative min-h-full grid place-items-center p-4">
-    <div class="bg-white rounded-xl w-full max-w-md p-4">
-      <h2 id="modalTitle" class="font-semibold mb-4">Agregar pago</h2>
+<div id="modal" class="fixed inset-0 hidden bg-black/40 grid place-items-center p-4">
+  <div class="bg-white p-4 rounded-xl w-full max-w-md space-y-3">
+    <h2 class="font-semibold text-lg">Gasto</h2>
 
-      <input id="editId" type="hidden">
+    <input id="id" type="hidden">
+    <input id="nombre" class="input" placeholder="Nombre del gasto">
+    <input id="monto" type="number" class="input" placeholder="Monto total">
 
-      <label class="text-sm">Nombre</label>
-      <input id="nameInput" class="w-full mb-3 px-3 py-2 border rounded-xl">
+    <select id="tipo" class="input">
+      <option value="MITAD">Mitad</option>
+      <option value="TOTAL">Total</option>
+    </select>
 
-      <label class="text-sm">Total</label>
-      <input id="totalInput" type="number" step="0.01"
-        class="w-full mb-3 px-3 py-2 border rounded-xl">
+    <select id="qPago" class="input">
+      <option value="1">Pagar en Quincena 1</option>
+      <option value="2">Pagar en Quincena 2</option>
+    </select>
 
-      <label class="text-sm">Tipo</label>
-      <select id="tipoInput"
-        class="w-full mb-3 px-3 py-2 border rounded-xl">
-        <option value="MITAD">Mitad</option>
-        <option value="TOTAL">Total</option>
-      </select>
-
-      <label class="text-sm">Quincena (si es TOTAL)</label>
-      <select id="quincenaInput"
-        class="w-full mb-4 px-3 py-2 border rounded-xl">
-        <option value="1">Quincena 1</option>
-        <option value="2">Quincena 2</option>
-      </select>
-
-      <div class="flex justify-end gap-2">
-        <button onclick="closeModal()"
-          class="px-4 py-2 border rounded-xl">Cancelar</button>
-        <button id="saveItem"
-          class="px-4 py-2 bg-slate-900 text-white rounded-xl">
-          Guardar
-        </button>
-      </div>
+    <div class="flex justify-end gap-2">
+      <button onclick="closeModal()" class="px-3 py-2 border rounded-xl">Cancelar</button>
+      <button onclick="saveGasto()" class="px-4 py-2 bg-slate-900 text-white rounded-xl">Guardar</button>
     </div>
   </div>
 </div>
@@ -140,119 +102,123 @@
 <script>
 const $ = id => document.getElementById(id);
 const money = n => "$" + n.toFixed(2);
+const STORAGE = "CONTROL_QUINCENA_PRO";
 
-const STORAGE_KEY = "control_quincena_final";
-
-let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-  deposit: 418.52,
+let state = JSON.parse(localStorage.getItem(STORAGE)) || {
+  deposito: 418.52,
   quincena: 1,
   filtro: "ALL",
+  buscar: "",
   items: [
     { id: crypto.randomUUID(), name: "Gym", total: 23, tipo: "MITAD" },
     { id: crypto.randomUUID(), name: "Tigo chip", total: 14.99, tipo: "MITAD" },
     { id: crypto.randomUUID(), name: "Tigo casa", total: 42.97, tipo: "MITAD" },
-    { id: crypto.randomUUID(), name: "Tarjeta de crédito", total: 63, tipo: "MITAD" },
-    { id: crypto.randomUUID(), name: "Cuchubal", total: 120, tipo: "TOTAL", quincena: 1 },
-    { id: crypto.randomUUID(), name: "Súper", total: 50, tipo: "TOTAL", quincena: 1 },
+    { id: crypto.randomUUID(), name: "Tarjeta crédito", total: 63, tipo: "MITAD" },
+    { id: crypto.randomUUID(), name: "Cuchubal", total: 120, tipo: "TOTAL", q: 1 },
+    { id: crypto.randomUUID(), name: "Súper", total: 50, tipo: "TOTAL", q: 1 },
   ]
 };
 
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+function save(){ localStorage.setItem(STORAGE, JSON.stringify(state)); }
 
-function computePay(item) {
-  if (item.tipo === "MITAD") return item.total / 2;
-  if (item.tipo === "TOTAL" && item.quincena === state.quincena) return item.total;
+function compute(item){
+  if(item.tipo === "MITAD") return item.total / 2;
+  if(item.tipo === "TOTAL" && item.q === state.quincena) return item.total;
   return 0;
 }
 
-function render() {
-  $("depositInput").value = state.deposit;
-  $("quincenaSelect").value = state.quincena;
-  $("tipoFiltro").value = state.filtro;
+function render(){
+  $("deposito").value = state.deposito;
+  $("quincena").value = state.quincena;
+  $("filtro").value = state.filtro;
+  $("tabla").innerHTML = "";
 
   let total = 0;
-  $("tableBody").innerHTML = "";
 
-  state.items.forEach(item => {
-    if (state.filtro !== "ALL" && item.tipo !== state.filtro) return;
+  state.items.forEach(i=>{
+    if(state.filtro !== "ALL" && i.tipo !== state.filtro) return;
+    if(state.buscar && !i.name.toLowerCase().includes(state.buscar)) return;
 
-    const pay = computePay(item);
-    total += pay;
+    const q1 = i.tipo === "MITAD" ? i.total/2 : i.q === 1 ? i.total : 0;
+    const q2 = i.tipo === "MITAD" ? i.total/2 : i.q === 2 ? i.total : 0;
 
-    $("tableBody").innerHTML += `
+    total += compute(i);
+
+    $("tabla").innerHTML += `
       <tr class="border-b">
-        <td class="p-3">${item.name}</td>
-        <td class="p-3 text-right">${money(item.total)}</td>
-        <td class="p-3 text-center">
-          ${item.tipo === "MITAD" ? "½ Mitad" : "Total (Q"+item.quincena+")"}
-        </td>
-        <td class="p-3 text-right font-semibold">${money(pay)}</td>
-        <td class="p-3 text-right">
-          <button onclick="editItem('${item.id}')" class="text-indigo-600">Editar</button>
+        <td class="py-2">${i.name}</td>
+        <td class="py-2 text-right">${money(i.total)}</td>
+        <td class="py-2 text-center">${i.tipo}</td>
+        <td class="py-2 text-right">${money(q1)}</td>
+        <td class="py-2 text-right">${money(q2)}</td>
+        <td class="py-2 text-center">
+          <button onclick="openModal(${JSON.stringify(i).replace(/"/g,'&quot;')})">✏️</button>
         </td>
       </tr>`;
   });
 
-  $("sumTotalPay").textContent = money(total);
-  const rem = state.deposit - total;
-  $("sumRemaining").textContent = money(rem);
-  $("sumStatus").textContent = rem >= 0 ? "✅ Vas bien" : "❌ Falta dinero";
+  $("total").textContent = money(total);
+  const disp = state.deposito - total;
+  $("disponible").textContent = money(disp);
+  $("estado").textContent = disp >= 0 ? "✅ Vas bien" : "❌ Falta dinero";
 }
 
-function openModal(item=null) {
+function openModal(item=null){
   $("modal").classList.remove("hidden");
-  if (!item) {
-    $("editId").value = "";
-    $("nameInput").value = "";
-    $("totalInput").value = "";
-    $("tipoInput").value = "MITAD";
-    $("quincenaInput").value = "1";
+  if(item){
+    $("id").value = item.id;
+    $("nombre").value = item.name;
+    $("monto").value = item.total;
+    $("tipo").value = item.tipo;
+    $("qPago").value = item.q || 1;
   } else {
-    $("editId").value = item.id;
-    $("nameInput").value = item.name;
-    $("totalInput").value = item.total;
-    $("tipoInput").value = item.tipo;
-    $("quincenaInput").value = item.quincena || 1;
+    $("id").value = "";
+    $("nombre").value = "";
+    $("monto").value = "";
+    $("tipo").value = "MITAD";
+    $("qPago").value = 1;
   }
 }
 
-function closeModal() {
-  $("modal").classList.add("hidden");
-}
+function closeModal(){ $("modal").classList.add("hidden"); }
 
-function editItem(id) {
-  openModal(state.items.find(i => i.id === id));
-}
-
-$("btnAdd").onclick = () => openModal();
-
-$("saveItem").onclick = () => {
-  const id = $("editId").value;
-  const item = {
-    id: id || crypto.randomUUID(),
-    name: $("nameInput").value,
-    total: +$("totalInput").value,
-    tipo: $("tipoInput").value,
-    quincena: +$("quincenaInput").value
+function saveGasto(){
+  const id = $("id").value || crypto.randomUUID();
+  const gasto = {
+    id,
+    name: $("nombre").value,
+    total: +$("monto").value,
+    tipo: $("tipo").value,
+    q: +$("qPago").value
   };
 
-  state.items = id
-    ? state.items.map(i => i.id === id ? item : i)
-    : [...state.items, item];
+  state.items = state.items.some(i=>i.id===id)
+    ? state.items.map(i=>i.id===id?gasto:i)
+    : [...state.items, gasto];
 
-  save();
-  closeModal();
-  render();
-};
+  save(); closeModal(); render();
+}
 
-$("depositInput").oninput = e => { state.deposit = +e.target.value; save(); render(); };
-$("quincenaSelect").onchange = e => { state.quincena = +e.target.value; save(); render(); };
-$("tipoFiltro").onchange = e => { state.filtro = e.target.value; save(); render(); };
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "control-quincena.json";
+  a.click();
+}
+
+$("deposito").oninput = e => { state.deposito = +e.target.value; save(); render(); };
+$("quincena").onchange = e => { state.quincena = +e.target.value; save(); render(); };
+$("filtro").onchange = e => { state.filtro = e.target.value; render(); };
+$("buscar").oninput = e => { state.buscar = e.target.value.toLowerCase(); render(); };
 
 render();
 </script>
-</div>
+
+<style>
+.input{padding:.5rem;border-radius:.75rem;border:1px solid #cbd5e1}
+.card{background:white;padding:1rem;border-radius:1rem;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+</style>
+
 </body>
 </html>

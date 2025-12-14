@@ -35,7 +35,7 @@
     <option value="MITAD">Solo Mitad</option>
     <option value="TOTAL">Solo Total</option>
   </select>
-  <input id="buscar" class="input" placeholder="Buscar gasto">
+  <input id="buscarTabla" class="input" placeholder="Buscar gasto">
 </section>
 
 <!-- RESUMEN -->
@@ -54,31 +54,18 @@
   </div>
 </section>
 
-<!-- TABLA MEJORADA -->
+<!-- TABLA -->
 <section class="card space-y-4">
 
-  <!-- BUSCADOR + FILAS -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-    <div class="relative w-full sm:w-72">
-      <input id="buscarTabla"
-        class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"
-        placeholder="Buscar gasto..." />
-      <svg class="absolute left-3 top-2.5 h-5 w-5 text-slate-400"
-        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z"/>
-      </svg>
-    </div>
-
-    <select id="rowsPerPage"
-      class="px-3 py-2 rounded-xl border border-slate-300 text-sm">
+  <div class="flex flex-col sm:flex-row justify-between gap-3">
+    <p id="pageInfo" class="text-sm text-slate-500"></p>
+    <select id="rowsPerPage" class="input sm:w-40">
       <option value="5">5 filas</option>
       <option value="10" selected>10 filas</option>
       <option value="15">15 filas</option>
     </select>
   </div>
 
-  <!-- TABLA -->
   <div class="overflow-x-auto rounded-xl border border-slate-200">
     <table class="min-w-full text-sm">
       <thead class="bg-slate-100 text-slate-600">
@@ -88,22 +75,16 @@
           <th class="px-4 py-3 text-center">Tipo</th>
           <th class="px-4 py-3 text-right">Q1</th>
           <th class="px-4 py-3 text-right">Q2</th>
-          <th class="px-4 py-3 text-center">Acción</th>
+          <th class="px-4 py-3 text-center">Acciones</th>
         </tr>
       </thead>
       <tbody id="tabla" class="divide-y divide-slate-100"></tbody>
     </table>
   </div>
 
-  <!-- PAGINADOR -->
-  <div class="flex items-center justify-between text-sm">
-    <p id="pageInfo" class="text-slate-500"></p>
-    <div class="flex gap-2">
-      <button id="prevPage"
-        class="px-3 py-2 rounded-xl border hover:bg-slate-100">←</button>
-      <button id="nextPage"
-        class="px-3 py-2 rounded-xl border hover:bg-slate-100">→</button>
-    </div>
+  <div class="flex justify-end gap-2">
+    <button id="prevPage" class="px-3 py-2 rounded-xl border hover:bg-slate-100">←</button>
+    <button id="nextPage" class="px-3 py-2 rounded-xl border hover:bg-slate-100">→</button>
   </div>
 
 </section>
@@ -116,8 +97,8 @@
     <h2 class="font-semibold text-lg">Gasto</h2>
 
     <input id="id" type="hidden">
-    <input id="nombre" class="input" placeholder="Nombre">
-    <input id="monto" type="number" prove="number" class="input" placeholder="Monto">
+    <input id="nombre" class="input" placeholder="Nombre del gasto">
+    <input id="monto" type="number" class="input" placeholder="Monto total">
 
     <select id="tipo" class="input">
       <option value="MITAD">Mitad</option>
@@ -131,8 +112,7 @@
 
     <div class="flex justify-end gap-2">
       <button onclick="closeModal()" class="px-3 py-2 border rounded-xl">Cancelar</button>
-      <button onclick="saveGasto()"
-        class="px-4 py-2 bg-slate-900 text-white rounded-xl">Guardar</button>
+      <button onclick="saveGasto()" class="px-4 py-2 bg-slate-900 text-white rounded-xl">Guardar</button>
     </div>
   </div>
 </div>
@@ -150,7 +130,6 @@ let state = JSON.parse(localStorage.getItem(STORAGE)) || {
   deposito: 418.52,
   quincena: 1,
   filtro: "ALL",
-  buscar: "",
   items: [
     { id: crypto.randomUUID(), name: "Gym", total: 23, tipo: "MITAD" },
     { id: crypto.randomUUID(), name: "Tigo chip", total: 14.99, tipo: "MITAD" },
@@ -207,8 +186,12 @@ function render(){
         <td class="px-4 py-3 text-right">${money(q1)}</td>
         <td class="px-4 py-3 text-right">${money(q2)}</td>
         <td class="px-4 py-3 text-center">
-          <button onclick="openModal(${JSON.stringify(i).replace(/"/g,'&quot;')})"
-            class="text-indigo-600 hover:text-indigo-800">✏️</button>
+          <div class="flex justify-center gap-2">
+            <button onclick="openModal(${JSON.stringify(i).replace(/"/g,'&quot;')})"
+              class="text-indigo-600 hover:text-indigo-800">✏️</button>
+            <button onclick="deleteGasto('${i.id}')"
+              class="text-rose-600 hover:text-rose-800">🗑️</button>
+          </div>
         </td>
       </tr>
     `;
@@ -224,7 +207,7 @@ function render(){
 
 $("prevPage").onclick = ()=>{ if(currentPage>1){ currentPage--; render(); } };
 $("nextPage").onclick = ()=>{ currentPage++; render(); };
-$("rowsPerPage").onchange = e =>{ rowsPerPage = +e.target.value; currentPage=1; render(); };
+$("rowsPerPage").onchange = e=>{ rowsPerPage=+e.target.value; currentPage=1; render(); };
 $("buscarTabla").oninput = ()=>{ currentPage=1; render(); };
 
 $("deposito").oninput = e=>{ state.deposito=+e.target.value; save(); render(); };
@@ -265,6 +248,20 @@ function saveGasto(){
     : [...state.items, gasto];
 
   save(); closeModal(); render();
+}
+
+function deleteGasto(id){
+  const gasto = state.items.find(i=>i.id===id);
+  if(!gasto) return;
+  if(!confirm(`¿Eliminar "${gasto.name}"?`)) return;
+
+  state.items = state.items.filter(i=>i.id!==id);
+
+  const maxPage = Math.ceil(state.items.length / rowsPerPage);
+  if(currentPage > maxPage) currentPage = maxPage || 1;
+
+  save();
+  render();
 }
 
 render();

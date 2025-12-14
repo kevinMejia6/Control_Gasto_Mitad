@@ -7,33 +7,31 @@
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-slate-100 text-slate-800">
+<body class="bg-slate-50 text-slate-800">
 
-<div class="max-w-7xl mx-auto p-4 space-y-6">
+<div class="min-h-screen max-w-7xl mx-auto p-4 space-y-6">
 
 <!-- HEADER -->
-<header class="bg-white rounded-2xl shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<header class="bg-white rounded-2xl shadow p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
   <div>
     <h1 class="text-xl font-bold">💸 Control de Quincenas</h1>
-    <p class="text-sm text-slate-500">Mitad / Total · Q1 / Q2</p>
+    <p class="text-sm text-slate-500">Mitad · Total · Q1 · Q2</p>
   </div>
 
-  <div class="flex flex-wrap gap-2">
+  <div class="flex gap-2 flex-wrap">
     <input id="deposito" type="number" step="0.01"
-      value="418.52"
       class="px-3 py-2 rounded-xl border"
-      placeholder="Depósito por quincena">
+      value="418.52">
+
+    <select id="quincenaActual" class="px-3 py-2 rounded-xl border">
+      <option value="1">Primera quincena</option>
+      <option value="2">Segunda quincena</option>
+    </select>
 
     <select id="filtroTipo" class="px-3 py-2 rounded-xl border">
       <option value="ALL">Todos</option>
       <option value="MITAD">Solo Mitad</option>
       <option value="TOTAL">Solo Total</option>
-    </select>
-
-    <select id="filtroQuincena" class="px-3 py-2 rounded-xl border">
-      <option value="ALL">Ambas quincenas</option>
-      <option value="1">Primera quincena</option>
-      <option value="2">Segunda quincena</option>
     </select>
   </div>
 </header>
@@ -41,16 +39,16 @@
 <!-- RESUMEN -->
 <section class="grid md:grid-cols-3 gap-4">
   <div class="bg-white p-4 rounded-2xl shadow">
-    <p class="text-sm text-slate-500">Total Q1</p>
-    <p id="totalQ1" class="text-2xl font-bold">$0.00</p>
+    <p class="text-sm text-slate-500">Total quincena</p>
+    <p id="totalQuincena" class="text-2xl font-bold">$0.00</p>
   </div>
   <div class="bg-white p-4 rounded-2xl shadow">
-    <p class="text-sm text-slate-500">Total Q2</p>
-    <p id="totalQ2" class="text-2xl font-bold">$0.00</p>
-  </div>
-  <div class="bg-white p-4 rounded-2xl shadow">
-    <p class="text-sm text-slate-500">Disponible (actual)</p>
+    <p class="text-sm text-slate-500">Disponible</p>
     <p id="disponible" class="text-2xl font-bold">$0.00</p>
+  </div>
+  <div class="bg-white p-4 rounded-2xl shadow">
+    <p class="text-sm text-slate-500">Estado</p>
+    <p id="estado" class="text-lg font-semibold">—</p>
   </div>
 </section>
 
@@ -61,10 +59,9 @@
 <tr>
   <th class="p-3 text-left">Pago</th>
   <th class="p-3 text-right">Total</th>
-  <th class="p-3 text-center">Tipo</th>
+  <th class="p-3 text-center">Modo</th>
   <th class="p-3 text-center">Quincena</th>
-  <th class="p-3 text-right">Q1</th>
-  <th class="p-3 text-right">Q2</th>
+  <th class="p-3 text-right">Pago</th>
 </tr>
 </thead>
 <tbody id="tabla" class="divide-y"></tbody>
@@ -75,76 +72,67 @@
 
 <script>
 const gastos = [
-  { nombre: "Gym", total: 23, tipo: "MITAD", quincena: null },
-  { nombre: "Tigo chip", total: 14.99, tipo: "MITAD", quincena: null },
-  { nombre: "Tigo casa", total: 42.97, tipo: "MITAD", quincena: null },
-  { nombre: "Tarjeta crédito", total: 63, tipo: "MITAD", quincena: null },
-  { nombre: "Cuchubal", total: 120, tipo: "TOTAL", quincena: 1 },
-  { nombre: "Súper", total: 50, tipo: "TOTAL", quincena: 1 }
+  { nombre: "Gym", total: 23, modo: "MITAD", quincena: null },
+  { nombre: "Tigo chip", total: 14.99, modo: "MITAD", quincena: null },
+  { nombre: "Tigo casa", total: 42.97, modo: "MITAD", quincena: null },
+  { nombre: "Tarjeta crédito", total: 63, modo: "MITAD", quincena: null },
+  { nombre: "Cuchubal", total: 120, modo: "TOTAL", quincena: 1 },
+  { nombre: "Súper", total: 50, modo: "TOTAL", quincena: 1 }
 ];
 
 const tabla = document.getElementById("tabla");
 const deposito = document.getElementById("deposito");
+const quincenaActual = document.getElementById("quincenaActual");
 const filtroTipo = document.getElementById("filtroTipo");
-const filtroQuincena = document.getElementById("filtroQuincena");
 
 function money(n) {
   return "$" + n.toFixed(2);
 }
 
+function calcularPago(g) {
+  const q = Number(quincenaActual.value);
+  if (g.modo === "MITAD") return g.total / 2;
+  if (g.modo === "TOTAL" && g.quincena === q) return g.total;
+  return 0;
+}
+
 function render() {
   tabla.innerHTML = "";
-  let totalQ1 = 0;
-  let totalQ2 = 0;
+  let total = 0;
 
   gastos.forEach(g => {
-    let q1 = 0, q2 = 0;
+    if (filtroTipo.value !== "ALL" && filtroTipo.value !== g.modo) return;
 
-    if (g.tipo === "MITAD") {
-      q1 = g.total / 2;
-      q2 = g.total / 2;
-    } else {
-      if (g.quincena === 1) q1 = g.total;
-      if (g.quincena === 2) q2 = g.total;
-    }
-
-    totalQ1 += q1;
-    totalQ2 += q2;
-
-    // Filtros
-    if (filtroTipo.value !== "ALL" && filtroTipo.value !== g.tipo) return;
-    if (filtroQuincena.value !== "ALL") {
-      if (filtroQuincena.value == 1 && q1 === 0) return;
-      if (filtroQuincena.value == 2 && q2 === 0) return;
-    }
+    const pago = calcularPago(g);
+    total += pago;
 
     tabla.innerHTML += `
       <tr>
         <td class="p-3">${g.nombre}</td>
         <td class="p-3 text-right">${money(g.total)}</td>
-        <td class="p-3 text-center font-semibold">${g.tipo}</td>
+        <td class="p-3 text-center font-semibold">${g.modo}</td>
         <td class="p-3 text-center">${g.quincena ?? "Ambas"}</td>
-        <td class="p-3 text-right">${money(q1)}</td>
-        <td class="p-3 text-right">${money(q2)}</td>
+        <td class="p-3 text-right font-bold">${money(pago)}</td>
       </tr>
     `;
   });
 
-  document.getElementById("totalQ1").textContent = money(totalQ1);
-  document.getElementById("totalQ2").textContent = money(totalQ2);
+  const dep = Number(deposito.value);
+  const disp = dep - total;
 
-  const qSel = filtroQuincena.value;
-  let disp = 0;
-  if (qSel == 1) disp = deposito.value - totalQ1;
-  else if (qSel == 2) disp = deposito.value - totalQ2;
-  else disp = deposito.value * 2 - (totalQ1 + totalQ2);
-
+  document.getElementById("totalQuincena").textContent = money(total);
   document.getElementById("disponible").textContent = money(disp);
+
+  const estado = document.getElementById("estado");
+  estado.textContent = disp >= 0 ? "✅ Bien" : "❌ Falta";
+  estado.className = disp >= 0
+    ? "text-green-600 font-semibold"
+    : "text-red-600 font-semibold";
 }
 
-filtroTipo.addEventListener("change", render);
-filtroQuincena.addEventListener("change", render);
 deposito.addEventListener("input", render);
+quincenaActual.addEventListener("change", render);
+filtroTipo.addEventListener("change", render);
 
 render();
 </script>

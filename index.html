@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Control de Quincena</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -21,543 +20,239 @@
 </head>
 
 <body class="bg-slate-50 text-slate-800">
-  <div class="min-h-screen">
-    <!-- Header -->
-    <header class="sticky top-0 z-30 backdrop-blur bg-white/70 border-b border-slate-200">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 grid place-items-center shadow-soft">
-            <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10V6m0 12v2m9-9a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-lg sm:text-xl font-semibold leading-tight">Control de Quincena</h1>
-            <p class="text-xs sm:text-sm text-slate-500">Pagos, mitades y cálculos automáticos</p>
-          </div>
-        </div>
+<div class="min-h-screen">
 
-        <div class="flex items-center gap-2">
-          <button id="btnExport"
-            class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-[.99] transition shadow-sm text-sm">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Exportar JSON
-          </button>
+<!-- HEADER -->
+<header class="sticky top-0 z-30 backdrop-blur bg-white/70 border-b border-slate-200">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+    <h1 class="text-xl font-semibold">📊 Control de Quincena</h1>
+    <button id="btnAdd"
+      class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
+      + Agregar pago
+    </button>
+  </div>
+</header>
 
-          <button id="btnAdd"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 active:scale-[.99] transition shadow-soft text-sm">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Agregar pago
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-      <!-- Inputs principales -->
-      <section class="grid lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <h2 class="font-semibold">Depósito</h2>
-          <p class="text-sm text-slate-500">Monto que te depositan esta quincena.</p>
-
-          <div class="mt-4">
-            <label class="text-xs font-medium text-slate-600">Depósito quincenal</label>
-            <div class="mt-1 flex items-center gap-2">
-              <span class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600">$</span>
-              <input id="depositInput" type="number" step="0.01" min="0"
-                class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="418.52" />
-            </div>
-          </div>
-
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <button id="btnReset"
-              class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition text-sm">
-              Restablecer
-            </button>
-            <button id="btnSave"
-              class="px-3 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition text-sm">
-              Guardar
-            </button>
-          </div>
-
-          <div class="mt-4 text-xs text-slate-500">
-            * Se guarda en tu navegador (no se sube a ningún lado).
-          </div>
-        </div>
-
-        <!-- Resumen -->
-        <div class="lg:col-span-2 grid sm:grid-cols-3 gap-4">
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-            <p class="text-xs font-medium text-slate-500">Total a pagar (quincena)</p>
-            <p id="sumTotalPay" class="mt-2 text-2xl font-semibold">$0.00</p>
-            <p id="sumHint" class="mt-1 text-xs text-slate-500">Calculado por Mitad/Completo</p>
-          </div>
-
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-            <p class="text-xs font-medium text-slate-500">Disponible</p>
-            <p id="sumRemaining" class="mt-2 text-2xl font-semibold">$0.00</p>
-            <p id="sumStatus" class="mt-1 text-xs text-slate-500">—</p>
-          </div>
-
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-            <p class="text-xs font-medium text-slate-500">Pagos registrados</p>
-            <p id="sumCount" class="mt-2 text-2xl font-semibold">0</p>
-            <p class="mt-1 text-xs text-slate-500">Puedes editar y guardar</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Tabla -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200">
-          <div>
-            <h2 class="font-semibold">Pagos</h2>
-            <p class="text-sm text-slate-500">Marca si el pago es ½ o Completo. El monto “Quincena” se calcula solo.</p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <input id="searchInput" type="text"
-              class="w-full sm:w-64 px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Buscar pago..." />
-          </div>
-        </div>
-
-        <div class="overflow-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-slate-50 text-slate-600">
-              <tr>
-                <th class="text-left font-semibold px-4 py-3">Pago</th>
-                <th class="text-right font-semibold px-4 py-3">Total</th>
-                <th class="text-center font-semibold px-4 py-3">Modo</th>
-                <th class="text-right font-semibold px-4 py-3">Quincena</th>
-                <th class="text-right font-semibold px-4 py-3">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
-          </table>
-        </div>
-
-        <div id="emptyState" class="p-10 text-center hidden">
-          <p class="font-semibold">No hay pagos aún.</p>
-          <p class="text-sm text-slate-500 mt-1">Agrega tus pagos para que se hagan los cálculos.</p>
-          <button id="btnAddEmpty"
-            class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition shadow-soft text-sm">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Agregar primer pago
-          </button>
-        </div>
-      </section>
-
-      <!-- Footer mini -->
-      <div class="text-xs text-slate-500">
-        Tip: Si algún mes cambian los montos, edítalos aquí y listo.
-      </div>
-    </main>
+<!-- SELECTORES -->
+<section class="max-w-6xl mx-auto px-4 py-4 grid md:grid-cols-3 gap-4">
+  <div class="bg-white p-4 rounded-xl border">
+    <label class="text-sm font-medium">Depósito quincenal</label>
+    <input id="depositInput" type="number" step="0.01"
+      class="mt-1 w-full px-3 py-2 rounded-xl border"
+      value="418.52">
   </div>
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/40"></div>
+  <div class="bg-white p-4 rounded-xl border">
+    <label class="text-sm font-medium">Quincena</label>
+    <select id="quincenaSelect"
+      class="mt-1 w-full px-3 py-2 rounded-xl border">
+      <option value="1">Primera quincena</option>
+      <option value="2">Segunda quincena</option>
+    </select>
+  </div>
 
-    <div class="relative min-h-full grid place-items-center p-4">
-      <div class="w-full max-w-lg bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
-        <div class="p-4 border-b border-slate-200 flex items-center justify-between">
-          <div>
-            <h3 id="modalTitle" class="font-semibold">Agregar pago</h3>
-            <p class="text-sm text-slate-500">Define el total y si se paga ½ o completo.</p>
-          </div>
-          <button id="btnClose" class="p-2 rounded-xl hover:bg-slate-100">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
+  <div class="bg-white p-4 rounded-xl border">
+    <label class="text-sm font-medium">Filtro</label>
+    <select id="tipoFiltro"
+      class="mt-1 w-full px-3 py-2 rounded-xl border">
+      <option value="ALL">Todos</option>
+      <option value="MITAD">Solo Mitad</option>
+      <option value="TOTAL">Solo Total</option>
+    </select>
+  </div>
+</section>
 
-        <form id="payForm" class="p-4 space-y-4">
-          <input type="hidden" id="editId" value="" />
+<!-- RESUMEN -->
+<section class="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-4">
+  <div class="bg-white p-4 rounded-xl border">
+    <p class="text-sm text-slate-500">Total a pagar</p>
+    <p id="sumTotalPay" class="text-2xl font-bold">$0.00</p>
+  </div>
+  <div class="bg-white p-4 rounded-xl border">
+    <p class="text-sm text-slate-500">Disponible</p>
+    <p id="sumRemaining" class="text-2xl font-bold">$0.00</p>
+  </div>
+  <div class="bg-white p-4 rounded-xl border">
+    <p id="sumStatus" class="text-lg font-semibold">—</p>
+  </div>
+</section>
 
-          <div>
-            <label class="text-xs font-medium text-slate-600">Nombre del pago</label>
-            <input id="nameInput" type="text"
-              class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Ej: Tigo casa" required />
-          </div>
+<!-- TABLA -->
+<section class="max-w-6xl mx-auto px-4 py-6">
+  <div class="bg-white rounded-xl border overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-100">
+        <tr>
+          <th class="p-3 text-left">Pago</th>
+          <th class="p-3 text-right">Total</th>
+          <th class="p-3 text-center">Tipo</th>
+          <th class="p-3 text-right">Pago quincena</th>
+          <th class="p-3 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</section>
 
-          <div class="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label class="text-xs font-medium text-slate-600">Total</label>
-              <div class="mt-1 flex items-center gap-2">
-                <span class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600">$</span>
-                <input id="totalInput" type="number" step="0.01" min="0"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="42.97" required />
-              </div>
-            </div>
+<!-- MODAL -->
+<div id="modal" class="fixed inset-0 hidden z-50">
+  <div class="absolute inset-0 bg-black/40"></div>
+  <div class="relative min-h-full grid place-items-center p-4">
+    <div class="bg-white rounded-xl w-full max-w-md p-4">
+      <h2 id="modalTitle" class="font-semibold mb-4">Agregar pago</h2>
 
-            <div>
-              <label class="text-xs font-medium text-slate-600">Modo</label>
-              <div class="mt-1 grid grid-cols-2 gap-2">
-                <button type="button" id="modeHalf"
-                  class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-sm">
-                  ½ (mitad)
-                </button>
-                <button type="button" id="modeFull"
-                  class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-sm">
-                  Completo
-                </button>
-              </div>
+      <input id="editId" type="hidden">
 
-              <!-- modo avanzado (opcional) -->
-              <div class="mt-3">
-                <label class="text-xs font-medium text-slate-600">Factor (opcional)</label>
-                <p class="text-xs text-slate-500">Deja 0.5 para mitad, 1 para completo.</p>
-                <input id="factorInput" type="number" step="0.01" min="0" max="2"
-                  class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="0.5" />
-              </div>
-            </div>
-          </div>
+      <label class="text-sm">Nombre</label>
+      <input id="nameInput" class="w-full mb-3 px-3 py-2 border rounded-xl">
 
-          <div class="flex items-center justify-end gap-2 pt-2">
-            <button type="button" id="btnCancel"
-              class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition">
-              Cancelar
-            </button>
-            <button type="submit"
-              class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition">
-              Guardar pago
-            </button>
-          </div>
-        </form>
+      <label class="text-sm">Total</label>
+      <input id="totalInput" type="number" step="0.01"
+        class="w-full mb-3 px-3 py-2 border rounded-xl">
+
+      <label class="text-sm">Tipo</label>
+      <select id="tipoInput"
+        class="w-full mb-3 px-3 py-2 border rounded-xl">
+        <option value="MITAD">Mitad</option>
+        <option value="TOTAL">Total</option>
+      </select>
+
+      <label class="text-sm">Quincena (si es TOTAL)</label>
+      <select id="quincenaInput"
+        class="w-full mb-4 px-3 py-2 border rounded-xl">
+        <option value="1">Quincena 1</option>
+        <option value="2">Quincena 2</option>
+      </select>
+
+      <div class="flex justify-end gap-2">
+        <button onclick="closeModal()"
+          class="px-4 py-2 border rounded-xl">Cancelar</button>
+        <button id="saveItem"
+          class="px-4 py-2 bg-slate-900 text-white rounded-xl">
+          Guardar
+        </button>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    // ---------- Utils ----------
-    const $ = (id) => document.getElementById(id);
-    const money = (n) => {
-      const num = Number(n || 0);
-      return num.toLocaleString("en-US", { style: "currency", currency: "USD" });
-    };
-    const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+<script>
+const $ = id => document.getElementById(id);
+const money = n => "$" + n.toFixed(2);
 
-    // ---------- Storage ----------
-    const STORAGE_KEY = "control_quincena_v1";
-    const defaultData = {
-      deposit: 418.52,
-      items: [
-        { id: crypto.randomUUID(), name: "Gym", total: 23.00, factor: 0.5 },
-        { id: crypto.randomUUID(), name: "Tigo chip", total: 14.99, factor: 0.5 },
-        { id: crypto.randomUUID(), name: "Tigo casa", total: 42.97, factor: 0.5 },
-        { id: crypto.randomUUID(), name: "Tarjeta de crédito", total: 63.00, factor: 0.5 },
-        { id: crypto.randomUUID(), name: "Cuchubal", total: 120.00, factor: 1.0 },
-        { id: crypto.randomUUID(), name: "Súper", total: 50.00, factor: 1.0 },
-      ],
-    };
+const STORAGE_KEY = "control_quincena_final";
 
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return structuredClone(defaultData);
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object") return structuredClone(defaultData);
-        if (!Array.isArray(parsed.items)) parsed.items = [];
-        return parsed;
-      } catch {
-        return structuredClone(defaultData);
-      }
-    }
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+  deposit: 418.52,
+  quincena: 1,
+  filtro: "ALL",
+  items: [
+    { id: crypto.randomUUID(), name: "Gym", total: 23, tipo: "MITAD" },
+    { id: crypto.randomUUID(), name: "Tigo chip", total: 14.99, tipo: "MITAD" },
+    { id: crypto.randomUUID(), name: "Tigo casa", total: 42.97, tipo: "MITAD" },
+    { id: crypto.randomUUID(), name: "Tarjeta de crédito", total: 63, tipo: "MITAD" },
+    { id: crypto.randomUUID(), name: "Cuchubal", total: 120, tipo: "TOTAL", quincena: 1 },
+    { id: crypto.randomUUID(), name: "Súper", total: 50, tipo: "TOTAL", quincena: 1 },
+  ]
+};
 
-    function saveData(data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 
-    let state = loadData();
+function computePay(item) {
+  if (item.tipo === "MITAD") return item.total / 2;
+  if (item.tipo === "TOTAL" && item.quincena === state.quincena) return item.total;
+  return 0;
+}
 
-    // ---------- UI State ----------
-    let currentFilter = "";
-    let modalMode = "create"; // create | edit
-    let selectedMode = 0.5; // quick buttons
+function render() {
+  $("depositInput").value = state.deposit;
+  $("quincenaSelect").value = state.quincena;
+  $("tipoFiltro").value = state.filtro;
 
-    // ---------- Render ----------
-    function computePay(item) {
-      const total = Number(item.total || 0);
-      const factor = Number(item.factor ?? 1);
-      return round2(total * factor);
-    }
+  let total = 0;
+  $("tableBody").innerHTML = "";
 
-    function filteredItems(items) {
-      const q = currentFilter.trim().toLowerCase();
-      if (!q) return items;
-      return items.filter(i => String(i.name).toLowerCase().includes(q));
-    }
+  state.items.forEach(item => {
+    if (state.filtro !== "ALL" && item.tipo !== state.filtro) return;
 
-    function render() {
-      // deposit
-      $("depositInput").value = state.deposit ?? 0;
+    const pay = computePay(item);
+    total += pay;
 
-      // table
-      const body = $("tableBody");
-      body.innerHTML = "";
+    $("tableBody").innerHTML += `
+      <tr class="border-b">
+        <td class="p-3">${item.name}</td>
+        <td class="p-3 text-right">${money(item.total)}</td>
+        <td class="p-3 text-center">
+          ${item.tipo === "MITAD" ? "½ Mitad" : "Total (Q"+item.quincena+")"}
+        </td>
+        <td class="p-3 text-right font-semibold">${money(pay)}</td>
+        <td class="p-3 text-right">
+          <button onclick="editItem('${item.id}')" class="text-indigo-600">Editar</button>
+        </td>
+      </tr>`;
+  });
 
-      const items = filteredItems(state.items);
-      $("sumCount").textContent = state.items.length;
+  $("sumTotalPay").textContent = money(total);
+  const rem = state.deposit - total;
+  $("sumRemaining").textContent = money(rem);
+  $("sumStatus").textContent = rem >= 0 ? "✅ Vas bien" : "❌ Falta dinero";
+}
 
-      if (state.items.length === 0) {
-        $("emptyState").classList.remove("hidden");
-      } else {
-        $("emptyState").classList.add("hidden");
-      }
+function openModal(item=null) {
+  $("modal").classList.remove("hidden");
+  if (!item) {
+    $("editId").value = "";
+    $("nameInput").value = "";
+    $("totalInput").value = "";
+    $("tipoInput").value = "MITAD";
+    $("quincenaInput").value = "1";
+  } else {
+    $("editId").value = item.id;
+    $("nameInput").value = item.name;
+    $("totalInput").value = item.total;
+    $("tipoInput").value = item.tipo;
+    $("quincenaInput").value = item.quincena || 1;
+  }
+}
 
-      // totals
-      const totalPay = round2(state.items.reduce((acc, it) => acc + computePay(it), 0));
-      const remaining = round2(Number(state.deposit || 0) - totalPay);
+function closeModal() {
+  $("modal").classList.add("hidden");
+}
 
-      $("sumTotalPay").textContent = money(totalPay);
-      $("sumRemaining").textContent = money(remaining);
+function editItem(id) {
+  openModal(state.items.find(i => i.id === id));
+}
 
-      const statusEl = $("sumStatus");
-      if (remaining > 0) {
-        statusEl.textContent = "Vas bien ✅";
-        statusEl.className = "mt-1 text-xs text-emerald-600";
-      } else if (remaining === 0) {
-        statusEl.textContent = "Quedaste exacto ⚖️";
-        statusEl.className = "mt-1 text-xs text-amber-600";
-      } else {
-        statusEl.textContent = "Te falta dinero ❌";
-        statusEl.className = "mt-1 text-xs text-rose-600";
-      }
+$("btnAdd").onclick = () => openModal();
 
-      // rows
-      items.forEach((item) => {
-        const tr = document.createElement("tr");
+$("saveItem").onclick = () => {
+  const id = $("editId").value;
+  const item = {
+    id: id || crypto.randomUUID(),
+    name: $("nameInput").value,
+    total: +$("totalInput").value,
+    tipo: $("tipoInput").value,
+    quincena: +$("quincenaInput").value
+  };
 
-        const pay = computePay(item);
-        const modeLabel = (Number(item.factor) === 0.5) ? "½ (mitad)"
-                        : (Number(item.factor) === 1) ? "Completo"
-                        : `x${Number(item.factor).toFixed(2)}`;
+  state.items = id
+    ? state.items.map(i => i.id === id ? item : i)
+    : [...state.items, item];
 
-        tr.innerHTML = `
-          <td class="px-4 py-3">
-            <div class="font-medium">${escapeHtml(item.name)}</div>
-            <div class="text-xs text-slate-500">ID: ${item.id.slice(0, 8)}…</div>
-          </td>
-          <td class="px-4 py-3 text-right tabular-nums">${money(item.total)}</td>
-          <td class="px-4 py-3 text-center">
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs border border-slate-200 bg-slate-50">
-              ${modeLabel}
-            </span>
-          </td>
-          <td class="px-4 py-3 text-right tabular-nums font-semibold">${money(pay)}</td>
-          <td class="px-4 py-3 text-right">
-            <div class="inline-flex gap-2">
-              <button data-action="edit" data-id="${item.id}"
-                class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition text-xs">
-                Editar
-              </button>
-              <button data-action="delete" data-id="${item.id}"
-                class="px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition text-xs">
-                Eliminar
-              </button>
-            </div>
-          </td>
-        `;
-        body.appendChild(tr);
-      });
+  save();
+  closeModal();
+  render();
+};
 
-      // Export btn visible always on small? show as is.
-      $("btnExport").classList.remove("hidden");
-    }
+$("depositInput").oninput = e => { state.deposit = +e.target.value; save(); render(); };
+$("quincenaSelect").onchange = e => { state.quincena = +e.target.value; save(); render(); };
+$("tipoFiltro").onchange = e => { state.filtro = e.target.value; save(); render(); };
 
-    // avoid XSS in name
-    function escapeHtml(str) {
-      return String(str ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    // ---------- Modal ----------
-    function openModal(mode, item = null) {
-      modalMode = mode;
-      $("modal").classList.remove("hidden");
-
-      if (mode === "create") {
-        $("modalTitle").textContent = "Agregar pago";
-        $("editId").value = "";
-        $("nameInput").value = "";
-        $("totalInput").value = "";
-        selectedMode = 0.5;
-        $("factorInput").value = "0.5";
-        setModeUI(0.5);
-      } else {
-        $("modalTitle").textContent = "Editar pago";
-        $("editId").value = item.id;
-        $("nameInput").value = item.name;
-        $("totalInput").value = item.total;
-        const factor = Number(item.factor ?? 1);
-        selectedMode = factor;
-        $("factorInput").value = String(factor);
-        setModeUI(factor === 0.5 ? 0.5 : factor === 1 ? 1 : factor);
-      }
-    }
-
-    function closeModal() {
-      $("modal").classList.add("hidden");
-    }
-
-    function setModeUI(modeVal) {
-      const half = $("modeHalf");
-      const full = $("modeFull");
-
-      const active = "border-indigo-200 bg-indigo-50 text-indigo-700";
-      const idle = "border-slate-200 bg-white text-slate-800";
-
-      if (modeVal === 0.5) {
-        half.className = `px-3 py-2 rounded-xl border transition text-sm ${active}`;
-        full.className = `px-3 py-2 rounded-xl border transition text-sm ${idle}`;
-      } else if (modeVal === 1) {
-        half.className = `px-3 py-2 rounded-xl border transition text-sm ${idle}`;
-        full.className = `px-3 py-2 rounded-xl border transition text-sm ${active}`;
-      } else {
-        // advanced factor - keep both idle
-        half.className = `px-3 py-2 rounded-xl border transition text-sm ${idle}`;
-        full.className = `px-3 py-2 rounded-xl border transition text-sm ${idle}`;
-      }
-    }
-
-    // ---------- Events ----------
-    $("btnAdd").addEventListener("click", () => openModal("create"));
-    $("btnAddEmpty").addEventListener("click", () => openModal("create"));
-    $("btnClose").addEventListener("click", closeModal);
-    $("btnCancel").addEventListener("click", closeModal);
-
-    // close when clicking backdrop
-    $("modal").addEventListener("click", (e) => {
-      if (e.target === $("modal").firstElementChild) closeModal();
-    });
-
-    $("modeHalf").addEventListener("click", () => {
-      selectedMode = 0.5;
-      $("factorInput").value = "0.5";
-      setModeUI(0.5);
-    });
-
-    $("modeFull").addEventListener("click", () => {
-      selectedMode = 1;
-      $("factorInput").value = "1";
-      setModeUI(1);
-    });
-
-    $("factorInput").addEventListener("input", () => {
-      const v = Number($("factorInput").value);
-      if (!Number.isFinite(v)) return;
-      selectedMode = v;
-      setModeUI(v === 0.5 ? 0.5 : v === 1 ? 1 : v);
-    });
-
-    // Save deposit
-    $("btnSave").addEventListener("click", () => {
-      const dep = Number($("depositInput").value);
-      state.deposit = Number.isFinite(dep) ? round2(dep) : 0;
-      saveData(state);
-      render();
-    });
-
-    // Reset to defaults
-    $("btnReset").addEventListener("click", () => {
-      if (!confirm("¿Restablecer todo a valores por defecto?")) return;
-      state = structuredClone(defaultData);
-      saveData(state);
-      render();
-    });
-
-    // Search
-    $("searchInput").addEventListener("input", (e) => {
-      currentFilter = e.target.value;
-      render();
-    });
-
-    // Form submit
-    $("payForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const id = $("editId").value.trim();
-      const name = $("nameInput").value.trim();
-      const total = Number($("totalInput").value);
-      const factor = Number($("factorInput").value);
-
-      if (!name) return alert("Escribe el nombre del pago.");
-      if (!Number.isFinite(total) || total < 0) return alert("Total inválido.");
-      if (!Number.isFinite(factor) || factor < 0) return alert("Factor inválido (usa 0.5 o 1).");
-
-      const payload = {
-        id: id || crypto.randomUUID(),
-        name,
-        total: round2(total),
-        factor: round2(factor),
-      };
-
-      if (modalMode === "create") {
-        state.items.push(payload);
-      } else {
-        const idx = state.items.findIndex(x => x.id === id);
-        if (idx >= 0) state.items[idx] = payload;
-      }
-
-      saveData(state);
-      render();
-      closeModal();
-    });
-
-    // Table actions
-    $("tableBody").addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-
-      const action = btn.dataset.action;
-      const id = btn.dataset.id;
-
-      const item = state.items.find(x => x.id === id);
-      if (!item) return;
-
-      if (action === "edit") {
-        openModal("edit", item);
-      } else if (action === "delete") {
-        if (!confirm(`¿Eliminar "${item.name}"?`)) return;
-        state.items = state.items.filter(x => x.id !== id);
-        saveData(state);
-        render();
-      }
-    });
-
-    // Export JSON
-    $("btnExport").addEventListener("click", () => {
-      const dataStr = JSON.stringify(state, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "control-quincena.json";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    });
-
-    // Init
-    render();
-  </script>
+render();
+</script>
+</div>
 </body>
 </html>

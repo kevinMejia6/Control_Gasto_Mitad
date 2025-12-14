@@ -12,19 +12,19 @@
 <div class="min-h-screen max-w-7xl mx-auto p-4 space-y-6">
 
 <!-- HEADER -->
-<header class="bg-white rounded-2xl shadow p-4 flex flex-col md:flex-row justify-between gap-4">
+<header class="bg-white rounded-2xl shadow p-4 flex flex-col sm:flex-row justify-between gap-4">
   <div>
     <h1 class="text-2xl font-bold">💸 Control Financiero Quincenal</h1>
     <p class="text-sm text-slate-500">Administra tus gastos por quincena</p>
   </div>
-  <div class="flex gap-2">
-    <button onclick="exportJSON()" class="px-4 py-2 rounded-xl border">Exportar JSON</button>
-    <button onclick="openModal()" class="px-4 py-2 rounded-xl bg-slate-900 text-white">+ Gasto</button>
-  </div>
+  <button onclick="openModal()"
+    class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
+    + Agregar gasto
+  </button>
 </header>
 
 <!-- CONTROLES -->
-<section class="grid md:grid-cols-4 gap-4">
+<section class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
   <input id="deposito" type="number" class="input" placeholder="Depósito quincenal">
   <select id="quincena" class="input">
     <option value="1">Quincena 1</option>
@@ -39,7 +39,7 @@
 </section>
 
 <!-- RESUMEN -->
-<section class="grid md:grid-cols-3 gap-4">
+<section class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
   <div class="card">
     <p class="text-sm text-slate-500">Total a pagar</p>
     <h2 id="total" class="text-2xl font-bold">$0.00</h2>
@@ -54,21 +54,58 @@
   </div>
 </section>
 
-<!-- TABLA -->
-<section class="card overflow-auto">
-<table class="w-full text-sm">
-<thead>
-<tr class="border-b text-left">
-<th class="py-2">Pago</th>
-<th class="py-2 text-right">Total</th>
-<th class="py-2 text-center">Tipo</th>
-<th class="py-2 text-right">Q1</th>
-<th class="py-2 text-right">Q2</th>
-<th class="py-2 text-center">Acción</th>
-</tr>
-</thead>
-<tbody id="tabla"></tbody>
-</table>
+<!-- TABLA MEJORADA -->
+<section class="card space-y-4">
+
+  <!-- BUSCADOR + FILAS -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="relative w-full sm:w-72">
+      <input id="buscarTabla"
+        class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"
+        placeholder="Buscar gasto..." />
+      <svg class="absolute left-3 top-2.5 h-5 w-5 text-slate-400"
+        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-4.35-4.35m1.6-5.4a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+    </div>
+
+    <select id="rowsPerPage"
+      class="px-3 py-2 rounded-xl border border-slate-300 text-sm">
+      <option value="5">5 filas</option>
+      <option value="10" selected>10 filas</option>
+      <option value="15">15 filas</option>
+    </select>
+  </div>
+
+  <!-- TABLA -->
+  <div class="overflow-x-auto rounded-xl border border-slate-200">
+    <table class="min-w-full text-sm">
+      <thead class="bg-slate-100 text-slate-600">
+        <tr>
+          <th class="px-4 py-3 text-left">Pago</th>
+          <th class="px-4 py-3 text-right">Total</th>
+          <th class="px-4 py-3 text-center">Tipo</th>
+          <th class="px-4 py-3 text-right">Q1</th>
+          <th class="px-4 py-3 text-right">Q2</th>
+          <th class="px-4 py-3 text-center">Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tabla" class="divide-y divide-slate-100"></tbody>
+    </table>
+  </div>
+
+  <!-- PAGINADOR -->
+  <div class="flex items-center justify-between text-sm">
+    <p id="pageInfo" class="text-slate-500"></p>
+    <div class="flex gap-2">
+      <button id="prevPage"
+        class="px-3 py-2 rounded-xl border hover:bg-slate-100">←</button>
+      <button id="nextPage"
+        class="px-3 py-2 rounded-xl border hover:bg-slate-100">→</button>
+    </div>
+  </div>
+
 </section>
 
 </div>
@@ -79,8 +116,8 @@
     <h2 class="font-semibold text-lg">Gasto</h2>
 
     <input id="id" type="hidden">
-    <input id="nombre" class="input" placeholder="Nombre del gasto">
-    <input id="monto" type="number" class="input" placeholder="Monto total">
+    <input id="nombre" class="input" placeholder="Nombre">
+    <input id="monto" type="number" prove="number" class="input" placeholder="Monto">
 
     <select id="tipo" class="input">
       <option value="MITAD">Mitad</option>
@@ -88,13 +125,14 @@
     </select>
 
     <select id="qPago" class="input">
-      <option value="1">Pagar en Quincena 1</option>
-      <option value="2">Pagar en Quincena 2</option>
+      <option value="1">Quincena 1</option>
+      <option value="2">Quincena 2</option>
     </select>
 
     <div class="flex justify-end gap-2">
       <button onclick="closeModal()" class="px-3 py-2 border rounded-xl">Cancelar</button>
-      <button onclick="saveGasto()" class="px-4 py-2 bg-slate-900 text-white rounded-xl">Guardar</button>
+      <button onclick="saveGasto()"
+        class="px-4 py-2 bg-slate-900 text-white rounded-xl">Guardar</button>
     </div>
   </div>
 </div>
@@ -102,6 +140,10 @@
 <script>
 const $ = id => document.getElementById(id);
 const money = n => "$" + n.toFixed(2);
+
+let currentPage = 1;
+let rowsPerPage = 10;
+
 const STORAGE = "CONTROL_QUINCENA_PRO";
 
 let state = JSON.parse(localStorage.getItem(STORAGE)) || {
@@ -121,9 +163,9 @@ let state = JSON.parse(localStorage.getItem(STORAGE)) || {
 
 function save(){ localStorage.setItem(STORAGE, JSON.stringify(state)); }
 
-function compute(item){
-  if(item.tipo === "MITAD") return item.total / 2;
-  if(item.tipo === "TOTAL" && item.q === state.quincena) return item.total;
+function compute(i){
+  if(i.tipo === "MITAD") return i.total / 2;
+  if(i.tipo === "TOTAL" && i.q === state.quincena) return i.total;
   return 0;
 }
 
@@ -131,52 +173,78 @@ function render(){
   $("deposito").value = state.deposito;
   $("quincena").value = state.quincena;
   $("filtro").value = state.filtro;
-  $("tabla").innerHTML = "";
 
+  const filtered = state.items.filter(i=>{
+    if(state.filtro !== "ALL" && i.tipo !== state.filtro) return false;
+    if($("buscarTabla").value && !i.name.toLowerCase().includes($("buscarTabla").value.toLowerCase())) return false;
+    return true;
+  });
+
+  const totalPages = Math.ceil(filtered.length / rowsPerPage);
+  if(currentPage > totalPages) currentPage = totalPages || 1;
+
+  const start = (currentPage - 1) * rowsPerPage;
+  const pageItems = filtered.slice(start, start + rowsPerPage);
+
+  $("tabla").innerHTML = "";
   let total = 0;
 
-  state.items.forEach(i=>{
-    if(state.filtro !== "ALL" && i.tipo !== state.filtro) return;
-    if(state.buscar && !i.name.toLowerCase().includes(state.buscar)) return;
-
+  pageItems.forEach(i=>{
     const q1 = i.tipo === "MITAD" ? i.total/2 : i.q === 1 ? i.total : 0;
     const q2 = i.tipo === "MITAD" ? i.total/2 : i.q === 2 ? i.total : 0;
-
     total += compute(i);
 
     $("tabla").innerHTML += `
-      <tr class="border-b">
-        <td class="py-2">${i.name}</td>
-        <td class="py-2 text-right">${money(i.total)}</td>
-        <td class="py-2 text-center">${i.tipo}</td>
-        <td class="py-2 text-right">${money(q1)}</td>
-        <td class="py-2 text-right">${money(q2)}</td>
-        <td class="py-2 text-center">
-          <button onclick="openModal(${JSON.stringify(i).replace(/"/g,'&quot;')})">✏️</button>
+      <tr class="hover:bg-slate-50">
+        <td class="px-4 py-3 font-medium">${i.name}</td>
+        <td class="px-4 py-3 text-right">${money(i.total)}</td>
+        <td class="px-4 py-3 text-center">
+          <span class="px-2 py-1 rounded-full text-xs
+            ${i.tipo==="MITAD"?"bg-indigo-100 text-indigo-700":"bg-emerald-100 text-emerald-700"}">
+            ${i.tipo}
+          </span>
         </td>
-      </tr>`;
+        <td class="px-4 py-3 text-right">${money(q1)}</td>
+        <td class="px-4 py-3 text-right">${money(q2)}</td>
+        <td class="px-4 py-3 text-center">
+          <button onclick="openModal(${JSON.stringify(i).replace(/"/g,'&quot;')})"
+            class="text-indigo-600 hover:text-indigo-800">✏️</button>
+        </td>
+      </tr>
+    `;
   });
 
   $("total").textContent = money(total);
   const disp = state.deposito - total;
   $("disponible").textContent = money(disp);
-  $("estado").textContent = disp >= 0 ? "✅ Vas bien" : "❌ Falta dinero";
+  $("estado").textContent = disp >= 0 ? "✅ Vas bien" : "❌ Falta";
+
+  $("pageInfo").textContent = `Página ${currentPage} de ${totalPages || 1}`;
 }
 
-function openModal(item=null){
+$("prevPage").onclick = ()=>{ if(currentPage>1){ currentPage--; render(); } };
+$("nextPage").onclick = ()=>{ currentPage++; render(); };
+$("rowsPerPage").onchange = e =>{ rowsPerPage = +e.target.value; currentPage=1; render(); };
+$("buscarTabla").oninput = ()=>{ currentPage=1; render(); };
+
+$("deposito").oninput = e=>{ state.deposito=+e.target.value; save(); render(); };
+$("quincena").onchange = e=>{ state.quincena=+e.target.value; save(); render(); };
+$("filtro").onchange = e=>{ state.filtro=e.target.value; render(); };
+
+function openModal(i=null){
   $("modal").classList.remove("hidden");
-  if(item){
-    $("id").value = item.id;
-    $("nombre").value = item.name;
-    $("monto").value = item.total;
-    $("tipo").value = item.tipo;
-    $("qPago").value = item.q || 1;
+  if(i){
+    $("id").value=i.id;
+    $("nombre").value=i.name;
+    $("monto").value=i.total;
+    $("tipo").value=i.tipo;
+    $("qPago").value=i.q||1;
   } else {
-    $("id").value = "";
-    $("nombre").value = "";
-    $("monto").value = "";
-    $("tipo").value = "MITAD";
-    $("qPago").value = 1;
+    $("id").value="";
+    $("nombre").value="";
+    $("monto").value="";
+    $("tipo").value="MITAD";
+    $("qPago").value=1;
   }
 }
 
@@ -199,25 +267,21 @@ function saveGasto(){
   save(); closeModal(); render();
 }
 
-function exportJSON(){
-  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "control-quincena.json";
-  a.click();
-}
-
-$("deposito").oninput = e => { state.deposito = +e.target.value; save(); render(); };
-$("quincena").onchange = e => { state.quincena = +e.target.value; save(); render(); };
-$("filtro").onchange = e => { state.filtro = e.target.value; render(); };
-$("buscar").oninput = e => { state.buscar = e.target.value.toLowerCase(); render(); };
-
 render();
 </script>
 
 <style>
-.input{padding:.5rem;border-radius:.75rem;border:1px solid #cbd5e1}
-.card{background:white;padding:1rem;border-radius:1rem;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.input{
+  padding:.5rem;
+  border-radius:.75rem;
+  border:1px solid #cbd5e1;
+}
+.card{
+  background:white;
+  padding:1rem;
+  border-radius:1rem;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
 </style>
 
 </body>
